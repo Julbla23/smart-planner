@@ -35,3 +35,5 @@ class EditTask(ModelForm):
             "category",
         ]
 
+class GoalForm(forms.Form):
+    goal = forms.CharField(max_length=200)

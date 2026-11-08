@@ -19,5 +19,6 @@ urlpatterns = [
     path("tasks/backlog/", views.backlog_tasks_list, name="backlog_tasks_list"),
     path("tasks/statistics/weekly/", views.show_weekly_statistics, name="show_weekly_statistics"),
     path("tasks/statistics/monthly/", views.show_monthly_statistics, name="show_monthly_statistics"),
-    path("tasks/statistics/quarterly/", views.show_quarterly_statistics, name="show_quarterly_statistics")
+    path("tasks/statistics/quarterly/", views.show_quarterly_statistics, name="show_quarterly_statistics"),
+    path("ai/", views.ai_kroki, name="ai_kroki"),
 ]

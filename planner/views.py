@@ -1,6 +1,8 @@
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, JsonResponse
+
+from .ai import rozbij_cel_na_kroki
 from .forms import AddTask, EditTask
 from .models import Task, Category, TaskMoveHistory
 from calendar import monthcalendar, month_name
@@ -10,6 +12,10 @@ from django.contrib.auth.forms import UserCreationForm
 from django.utils import timezone
 from django.db.models import Count
 from django.db.models.functions import TruncDate
+from django.contrib import messages
+from .forms import GoalForm
+from .ai import rozbij_cel_na_kroki
+
 
 @login_required
 def task_list(request):
@@ -151,7 +157,7 @@ def home(request):
 @login_required
 def calendar(request):
     year = 2026
-    month = 8
+    month = 11
 
     calendar_data = monthcalendar(2026,8)
 
@@ -266,4 +272,32 @@ def show_quarterly_statistics(request):
     quarterly_statistics = statistics(request.user, quarter_start, quarter_end)
     return render(request, "planner/quarterly_statistics.html", {"statistics": quarterly_statistics})
 
+@login_required
+def ai_kroki(request):
+    kroki = []
+    form = GoalForm()
+
+    if request.method == "POST":
+        akcja = request.POST.get("akcja")
+
+        if akcja == "zaproponuj":
+            form = GoalForm(request.POST)
+            if form.is_valid():
+                cel = form.cleaned_data["goal"]
+                kroki = rozbij_cel_na_kroki(cel)
+
+        elif akcja == "dodaj":
+            wybrane = request.POST.getlist("kroki")
+            data = request.POST.get("data")
+            for krok in wybrane:
+                Task.objects.create(
+                    name=krok,
+                    planned_date=data,
+                    duration_minutes=30,
+                    user=request.user,
+                )
+            messages.success(request, f"Dodano {len(wybrane)} zadań")
+            return redirect("home")
+
+    return render(request, "planner/ai_kroki.html", {"form": form, "kroki": kroki})
 

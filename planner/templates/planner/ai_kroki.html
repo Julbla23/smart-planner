@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>Formularz AI</title>
+</head>
+<body>
+
+<form method="post">
+    {% csrf_token %}
+    <label for="goal">Cel: </label>
+    <input type="text" id="goal" name="goal">
+    <button type="submit" name="akcja" value="zaproponuj">Zaproponuj kroki</button>
+</form>
+
+{% if kroki %}
+<form method="post">
+    {% csrf_token %}
+
+    {% for krok in kroki %}
+        <label>
+            <input type="checkbox" name="kroki" value="{{ krok }}" checked>
+            {{ krok }}
+        </label><br>
+    {% endfor %}
+
+    <label for="data">Data: </label>
+    <input type="date" id="data" name="data">
+
+    <button type="submit" name="akcja" value="dodaj">Dodaj wybrane</button>
+</form>
+{% endif %}
+
+</body>
+</html>
