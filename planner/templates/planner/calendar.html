@@ -1,42 +1,40 @@
-<!doctype html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport"
-          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Calendar</title>
- </head>
-<body>
-<h1>{{ month_name }} {{ year }}</h1>
+{% extends "base.html" %}
 
-<table class="table table-bordered">
-    <thead>
-        <tr>
+{% block title %}Kalendarz – {{ month_name }} {{ year }}{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">{{ month_name }} {{ year }}</h1>
+
+<div class="card shadow-sm">
+  <div class="card-body">
+    <div class="table-responsive">
+      <table class="table table-bordered text-center align-middle mb-0" style="table-layout: fixed;">
+        <thead>
+          <tr>
             <th scope="col">Pon</th>
             <th scope="col">Wt</th>
             <th scope="col">Śr</th>
             <th scope="col">Czw</th>
             <th scope="col">Pt</th>
-            <th scope="col">Sob</th>
-            <th scope="col">Nd</th>
-        </tr>
-    </thead>
-    {% for week in calendar_data %}
-    <tr>
-        {% for day in week %}
-        <td>
-            {% if day != 0 %}
-                <a href="{% url 'tasks_by_day' year month day %}">
-                <button type="button">
-                {{ day }}</button></a>
-            {% endif %}</td>
-        {% endfor %}
-    {% endfor %}</tr>
-</table>
-
-<a href="{% url 'home' %}">
-    <br><button type="button">Wróć do menu</button>
-<a/>
-</body>
-</html>
+            <th scope="col" class="text-muted">Sob</th>
+            <th scope="col" class="text-muted">Nd</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for week in calendar_data %}
+            <tr>
+              {% for day in week %}
+                <td class="p-1">
+                  {% if day != 0 %}
+                    <a class="btn btn-outline-primary w-100" href="{% url 'tasks_by_day' year month day %}">{{ day }}</a>
+                  {% endif %}
+                </td>
+              {% endfor %}
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,35 +1,68 @@
-<!DOCTYPE html>
-<html lang="pl">
-<head>
-    <meta charset="UTF-8">
-    <title>Formularz AI</title>
-</head>
-<body>
+{% extends "base.html" %}
 
-<form method="post">
-    {% csrf_token %}
-    <label for="goal">Cel: </label>
-    <input type="text" id="goal" name="goal">
-    <button type="submit" name="akcja" value="zaproponuj">Zaproponuj kroki</button>
-</form>
+{% block title %}Rozbij cel{% endblock %}
 
-{% if kroki %}
-<form method="post">
-    {% csrf_token %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-7">
 
-    {% for krok in kroki %}
-        <label>
-            <input type="checkbox" name="kroki" value="{{ krok }}" checked>
-            {{ krok }}
-        </label><br>
-    {% endfor %}
+    <div class="card shadow-sm mb-4">
+      <div class="card-body p-4">
+        <h3 class="mb-1">✨ Rozbij cel na kroki</h3>
+        <p class="text-muted mb-4">Wpisz cel, a AI zaproponuje konkretne kroki do zaplanowania.</p>
 
-    <label for="data">Data: </label>
-    <input type="date" id="data" name="data">
+        <form method="post" id="goalForm">
+          {% csrf_token %}
+          <label for="goal" class="form-label">Cel</label>
+          <div class="input-group">
+            <input type="text" id="goal" name="goal" class="form-control"
+                   placeholder="np. Przygotować się do rozmowy o pracę" required>
+            <button type="submit" name="akcja" value="zaproponuj" class="btn btn-primary" id="goalButton">
+              Zaproponuj kroki
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
 
-    <button type="submit" name="akcja" value="dodaj">Dodaj wybrane</button>
-</form>
-{% endif %}
+    {% if kroki %}
+    <div class="card shadow-sm">
+      <div class="card-body p-4">
+        <h5 class="mb-3">Proponowane kroki</h5>
+        <p class="text-muted small">Odznacz te, których nie chcesz dodawać.</p>
 
-</body>
-</html>
+        <form method="post">
+          {% csrf_token %}
+
+          {% for krok in kroki %}
+            <div class="form-check mb-2">
+              <input class="form-check-input" type="checkbox" name="kroki" value="{{ krok }}"
+                     id="krok{{ forloop.counter }}" checked>
+              <label class="form-check-label" for="krok{{ forloop.counter }}">{{ krok }}</label>
+            </div>
+          {% endfor %}
+
+          <div class="mt-4 mb-3">
+            <label for="data" class="form-label">Data</label>
+            <input type="date" id="data" name="data" class="form-control">
+          </div>
+
+          <button type="submit" name="akcja" value="dodaj" class="btn btn-primary">Dodaj wybrane</button>
+        </form>
+      </div>
+    </div>
+    {% endif %}
+
+  </div>
+</div>
+
+<script>
+document.getElementById("goalForm").addEventListener("submit", function () {
+  const button = document.getElementById("goalButton");
+  setTimeout(function () {
+    button.disabled = true;
+    button.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Myślę...';
+  }, 0);
+});
+</script>
+{% endblock %}

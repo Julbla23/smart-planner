@@ -1,15 +1,40 @@
-<!DOCTYPE html>
-<html lang="pl">
-<head>
-    <meta charset="UTF-8">
-    <title>Login</title>
-</head>
-<body>
-<form method ="post">
-{% csrf_token %}
-{{ form }}
-<button type="submit">Zaloguj się</button>
- <a href="{% url 'register' %}" class="btn-register">Zarejestruj się</a>
-</form>
-</body>
-</html>
+{% extends "base.html" %}
+
+{% block title %}Logowanie{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-5">
+    <div class="card shadow-sm">
+      <div class="card-body p-4">
+        <h3 class="mb-4 text-center">Zaloguj się</h3>
+
+        {% if form.errors %}
+          <div class="alert alert-danger">Nieprawidłowy login lub hasło.</div>
+        {% endif %}
+
+        <form method="post">
+          {% csrf_token %}
+
+          <div class="mb-3">
+            <label for="id_username" class="form-label">Login</label>
+            <input type="text" name="username" id="id_username" class="form-control"
+                   value="{{ form.username.value|default:'' }}" required autofocus>
+          </div>
+
+          <div class="mb-3">
+            <label for="id_password" class="form-label">Hasło</label>
+            <input type="password" name="password" id="id_password" class="form-control" required>
+          </div>
+
+          <button type="submit" class="btn btn-primary w-100">Zaloguj się</button>
+        </form>
+
+        <p class="text-center mt-3 mb-0">
+          Nie masz konta? <a href="{% url 'register' %}">Zarejestruj się</a>
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

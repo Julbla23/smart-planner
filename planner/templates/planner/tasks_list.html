@@ -1,58 +1,59 @@
+{% extends "base.html" %}
 {% load static %}
 
-<!doctype html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport"
-          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Task List</title>
-    <link href="{% static 'css/axis.css' %}" rel="stylesheet">
-</head>
-<body>
-<h1>Taski na dziś</h1>
+{% block title %}Taski na dziś{% endblock %}
+
+{% block extra_head %}
+<link href="{% static 'css/axis.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+  <h1 class="mb-0">Taski na dziś</h1>
+  <a class="btn btn-primary" href="{% url 'add_task' %}">+ Dodaj task</a>
+</div>
+
 <p class="axis-warning"></p>
-<h2>Wykonanie dnia: </h2> {{ percentage }}
+
+<div class="card shadow-sm mb-4">
+  <div class="card-body">
+    <div class="d-flex justify-content-between mb-1">
+      <span>Wykonanie dnia</span>
+      <strong>{{ percentage|floatformat:0 }}%</strong>
+    </div>
+    <div class="progress" style="height: 10px;">
+      <div class="progress-bar" style="width: {{ percentage|floatformat:0 }}%; background-color: var(--roz);"></div>
+    </div>
+  </div>
+</div>
 
 {% if tasks %}
 <div class="day-axis">
-    <div class="current-time-line"></div>
-    <ol>
-        {% for task in tasks %}
-            <li data-task-id="{{ task.id }}">
-                {% if task.status == "done" %}
-                   <s>{{ task.name }}</s>
-                {% else %}
-                    {{ task.name }}
-                    <a href="{% url 'status_done' task.id %}">
-                    <button type="button">Zrobione</button>
-                    </a>
-                {% endif %}
-
-                <a href="{% url 'delete_task' task.id %}">
-                    <button type="button">Usuń task</button>
-                </a>
-                <a href="{% url 'edit_task' task.id %}">
-                    <button type="button">Edytuj</button>
-                </a>
-            </li>
-        {% endfor %}
-    </ol>
+  <div class="current-time-line"></div>
+  <ol>
+    {% for task in tasks %}
+      <li data-task-id="{{ task.id }}" class="priority-{{ task.priority }}">
+        {% if task.status == "done" %}
+          <s class="text-muted">{{ task.name }}</s>
+        {% else %}
+          {{ task.name }}
+          <span class="badge badge-priority-{{ task.priority }}">{{ task.get_priority_display }}</span>
+          <a class="btn btn-primary btn-sm" href="{% url 'status_done' task.id %}">Zrobione</a>
+        {% endif %}
+        <a class="btn btn-outline-primary btn-sm" href="{% url 'edit_task' task.id %}">Edytuj</a>
+        <a class="btn btn-outline-danger btn-sm" href="{% url 'delete_task' task.id %}">Usuń</a>
+      </li>
+    {% endfor %}
+  </ol>
 </div>
-<a href="{% url 'add_task' %}">
-    <button type="button">Dodaj task</button>
-</a>
 {% else %}
-    <p>Nie masz zaplanowanych tasków na dziś.</p>
-    <a href="{% url 'add_task' %}">
-        <button type="button">Dodaj task</button>
-    </a>
+<div class="card shadow-sm">
+  <div class="card-body text-center text-muted">
+    Nie masz zaplanowanych tasków na dziś.
+  </div>
+</div>
 {% endif %}
-<a href="{% url 'home' %}">
-    <br><button type="button">Wróć do menu</button>
-</a>
+
 <script src="{% static 'js/change_order.js' %}"></script>
 <script src="{% static 'js/axis.js' %}"></script>
-</body>
-</html>
+{% endblock %}

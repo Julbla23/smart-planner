@@ -1,19 +1,61 @@
+{% extends "base.html" %}
 {% load static %}
-<html>
-<head>
-    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
-    <title>Statystyki kwartalne</title>
-</head>
-<body>
-    <h1>
-        Zadania zrobione: {{ statistics.done }}
-        Zadania przesunięte: {{ statistics.moved }}
-        Zadania zaległe: {{ statistics.overdue }}
-        Backlog: {{ statistics.backlog }}
-    </h1>
+
+{% block title %}Statystyki kwartalne{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+  <h1 class="mb-0">Statystyki kwartalne</h1>
+  <div class="btn-group">
+    <a class="btn btn-outline-primary" href="{% url 'show_weekly_statistics' %}">Tydzień</a>
+    <a class="btn btn-outline-primary" href="{% url 'show_monthly_statistics' %}">Miesiąc</a>
+    <a class="btn btn-primary" href="{% url 'show_quarterly_statistics' %}">Kwartał</a>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="card shadow-sm text-center h-100">
+      <div class="card-body">
+        <div class="text-muted small">Zrobione</div>
+        <div class="fs-2 fw-bold">{{ statistics.done }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card shadow-sm text-center h-100">
+      <div class="card-body">
+        <div class="text-muted small">Przesunięte</div>
+        <div class="fs-2 fw-bold">{{ statistics.moved }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card shadow-sm text-center h-100">
+      <div class="card-body">
+        <div class="text-muted small">Zaległe</div>
+        <div class="fs-2 fw-bold">{{ statistics.overdue }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card shadow-sm text-center h-100">
+      <div class="card-body">
+        <div class="text-muted small">Backlog</div>
+        <div class="fs-2 fw-bold">{{ statistics.backlog }}</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card shadow-sm">
+  <div class="card-body">
+    <h5 class="card-title">Zadania według kategorii</h5>
     <canvas id="categoryChart"></canvas>
-    {{ statistics.category|json_script:"category-data" }}
+  </div>
+</div>
+
+{{ statistics.category|json_script:"category-data" }}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="{% static 'js/chart.js' %}"></script>
-</body>
-</html>
+{% endblock %}

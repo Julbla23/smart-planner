@@ -159,6 +159,7 @@ def calendar(request):
     year = 2026
     month = 11
 
+
     calendar_data = monthcalendar(2026,8)
 
     return render(request, "planner/calendar.html", {

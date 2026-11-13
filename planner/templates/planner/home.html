@@ -1,39 +1,22 @@
-<!doctype html>
-<html lang="pl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport"
-          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Home</title>
-</head>
-<body>
+{% extends "base.html" %}
+
+{% block title %}Strona główna{% endblock %}
+
+{% block content %}
 <h1>Witaj</h1>
-<h3>Co dziś robimy?</h3>
-<a href="{% url 'task_list' %}">
-    <button type="button">Wyświetl taski</button>
-</a>
-<a href="{% url 'add_task' %}">
-    <br><button type="button">Dodaj taska</button>
-</a>
-<a href="{%url 'ai_kroki' %}">
-    <button type="button">Rozbij cel</button>
-</a>
-<a href="{% url 'calendar' %}">
-    <br><button type="button">Pokaż kalendarz</button>
-</a>
-<a href="{% url 'show_weekly_statistics' %}">
-    <br><button type="button">Wyświetl statystyki tygodniowe</button>
-</a>
-<a href="{% url 'show_monthly_statistics' %}">
-    <br><button type="button">Wyświetl statystyki miesięczne</button>
-</a>
-<a href="{% url 'show_quarterly_statistics' %}">
-    <br><button type="button">Wyświetl statystyki kwartalne</button>
-</a>
-<form method="post" action="{% url 'logout' %}">
-    {% csrf_token %}
-    <br><button type="submit">Wyloguj się</button>
-</form>
-</body>
-</html>
+<h3 class="mb-4">Co dziś robimy?</h3>
+
+<div class="d-grid gap-2 col-md-6">
+  <a class="btn btn-primary" href="{% url 'task_list' %}">Wyświetl taski</a>
+  <a class="btn btn-primary" href="{% url 'add_task' %}">Dodaj taska</a>
+  <a class="btn btn-outline-primary" href="{% url 'ai_kroki' %}">✨ Rozbij cel</a>
+  <a class="btn btn-outline-primary" href="{% url 'calendar' %}">Pokaż kalendarz</a>
+</div>
+
+<h5 class="mt-4">Statystyki</h5>
+<div class="d-flex gap-2">
+  <a class="btn btn-outline-primary" href="{% url 'show_weekly_statistics' %}">Tygodniowe</a>
+  <a class="btn btn-outline-primary" href="{% url 'show_monthly_statistics' %}">Miesięczne</a>
+  <a class="btn btn-outline-primary" href="{% url 'show_quarterly_statistics' %}">Kwartalne</a>
+</div>
+{% endblock %}
