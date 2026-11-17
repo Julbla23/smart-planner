@@ -15,8 +15,6 @@ class Category(models.Model):
 STATUS_CHOICES = [
     ("todo", "Do zrobienia"),
     ("done", "Zrobione"),
-    ("moved", "Przesunięte"),
-    ("cancelled", "Wykreślone")
 ]
 
 PRIORITY_CHOICES = [

@@ -31,19 +31,24 @@
 <div class="day-axis">
   <div class="current-time-line"></div>
   <ol>
-    {% for task in tasks %}
-      <li data-task-id="{{ task.id }}" class="priority-{{ task.priority }}">
-        {% if task.status == "done" %}
-          <s class="text-muted">{{ task.name }}</s>
-        {% else %}
-          {{ task.name }}
-          <span class="badge badge-priority-{{ task.priority }}">{{ task.get_priority_display }}</span>
-          <a class="btn btn-primary btn-sm" href="{% url 'status_done' task.id %}">Zrobione</a>
-        {% endif %}
-        <a class="btn btn-outline-primary btn-sm" href="{% url 'edit_task' task.id %}">Edytuj</a>
-        <a class="btn btn-outline-danger btn-sm" href="{% url 'delete_task' task.id %}">Usuń</a>
-      </li>
-    {% endfor %}
+{% for task in tasks %}
+  <li data-task-id="{{ task.id }}" class="priority-{{ task.priority }}">
+    {% if task.status == "done" %}
+      <s class="text-muted">{{ task.name }}</s>
+    {% else %}
+      {{ task.name }}
+      <span class="badge badge-priority-{{ task.priority }}">{{ task.get_priority_display }}</span>
+      <a class="btn btn-primary btn-sm" href="{% url 'status_done' task.id %}">Zrobione</a>
+    {% endif %}
+    <a class="btn btn-outline-primary btn-sm" href="{% url 'edit_task' task.id %}">Edytuj</a>
+    <a class="btn btn-outline-danger btn-sm" href="{% url 'delete_task' task.id %}">Usuń</a>
+  </li>
+{% empty %}
+  <li class="list-unstyled text-center text-muted py-5">
+    Brak zadań na dziś.
+    <a href="{% url 'ai_kroki' %}">Rozbij cel na kroki ✨</a>
+  </li>
+{% endfor %}
   </ol>
 </div>
 {% else %}

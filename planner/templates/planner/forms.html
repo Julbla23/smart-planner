@@ -14,7 +14,7 @@
           <div class="alert alert-danger">{{ error }}</div>
         {% endfor %}
 
-        <form method="post">
+        <form method="post" novalidate>
           {% csrf_token %}
 
           {% for field in form %}

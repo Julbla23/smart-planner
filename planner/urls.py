@@ -13,7 +13,7 @@ urlpatterns = [
     path("calendar/", views.calendar, name="calendar"),
     path("calendar/<int:year>/<int:month>/<int:day>", views.tasks_by_day, name="tasks_by_day"),
     path("categories/add/", views.add_category, name="add_category"),
-    path("", auth_views.LoginView.as_view(template_name="registration/login.html"), name="login"),
+    path("", auth_views.LoginView.as_view(template_name="registration/login.html", redirect_authenticated_user=True), name="login"),
     path("logout/", auth_views.LogoutView.as_view(template_name='registration/login.html'), name='logout'),
     path("register/", views.register, name="register"),
     path("tasks/backlog/", views.backlog_tasks_list, name="backlog_tasks_list"),

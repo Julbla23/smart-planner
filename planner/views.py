@@ -59,6 +59,7 @@ wyświetla dane
 def delete_task(request, n):
     task = get_object_or_404(Task, id=n, user=request.user)
     task.delete()
+    messages.success(request, "Task usunięty")
     return redirect("task_list")
 
 @login_required
@@ -127,6 +128,7 @@ def add_task(request):
                     }
                 )
             Task.objects.create(name=name, priority=priority, planned_date=planned_date, duration_minutes=duration_minutes, status=status, category=category, deadline=deadline, user=request.user)
+            messages.success(request, "Task dodany")
             return redirect("task_list")
     else:
         form = AddTask()
@@ -154,17 +156,23 @@ def edit_task(request, n):
 def home(request):
     return render(request, "planner/home.html",)
 
+MIESIACE = [
+    "", "Styczeń", "Luty", "Marzec", "Kwiecień", "Maj", "Czerwiec",
+    "Lipiec", "Sierpień", "Wrzesień", "Październik", "Listopad", "Grudzień",
+]
+
+
 @login_required
 def calendar(request):
-    year = 2026
-    month = 11
+    today = date.today()
+    year = today.year
+    month = today.month
 
-
-    calendar_data = monthcalendar(2026,8)
+    calendar_data = monthcalendar(year, month)
 
     return render(request, "planner/calendar.html", {
         "calendar_data": calendar_data,
-        "month_name": month_name[month],
+        "month_name": MIESIACE[month],
         "month": month,
         "year": year,
     })
@@ -193,6 +201,7 @@ def register(request):
         form = UserCreationForm(request.POST)
         if form.is_valid():
             form.save()
+            messages.success(request, "Rejestracja udana")
             return redirect('login')
     else:
         form = UserCreationForm()
