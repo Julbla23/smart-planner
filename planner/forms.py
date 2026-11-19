@@ -1,7 +1,7 @@
 from django import forms
 from django.forms import ModelForm
 
-from .models import PRIORITY_CHOICES, STATUS_CHOICES, Task, Category
+from .models import PRIORITY_CHOICES, Task, Category
 
 
 class BootstrapMixin:
@@ -38,13 +38,17 @@ class AddTask(BootstrapMixin, forms.Form):
     )
     duration_minutes = forms.IntegerField(label="Czas trwania (min)", required=True)
     priority = forms.ChoiceField(label="Priorytet", choices=PRIORITY_CHOICES)
-    status = forms.ChoiceField(label="Status", choices=STATUS_CHOICES)
     category = forms.ModelChoiceField(
         label="Kategoria",
         queryset=Category.objects.all(),
         required=False,
         empty_label="Bez kategorii",
     )
+
+    def __init__(self, *args, user=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if user is not None:
+            self.fields["category"].queryset = Category.objects.filter(user=user)
 
 
 class EditTask(BootstrapMixin, ModelForm):
@@ -79,9 +83,11 @@ class EditTask(BootstrapMixin, ModelForm):
             ),
         }
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, user=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["category"].empty_label = "Bez kategorii"
+        if user is not None:
+            self.fields["category"].queryset = Category.objects.filter(user=user)
 
 
 class GoalForm(BootstrapMixin, forms.Form):

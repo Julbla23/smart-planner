@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Statystyki{% endblock %}
+
+{% block extra_head %}
+<style>
+  .stat-tile {
+    border: 0;
+    border-top: 4px solid transparent;
+    cursor: pointer;
+    transition: transform .15s, box-shadow .15s;
+  }
+  .stat-tile:hover { transform: translateY(-2px); box-shadow: 0 .5rem 1rem rgba(0,0,0,.08) !important; }
+  .stat-tile[aria-expanded="true"] { outline: 2px solid var(--puder); }
+  .stat-todo    { border-top-color: var(--puder); }
+  .stat-done    { border-top-color: var(--prio-low); }
+  .stat-overdue { border-top-color: var(--prio-high); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-1">
+  <h1 class="mb-0">
+    Statystyki
+    {% if period == "week" %}tygodnia{% elif period == "month" %}miesiąca{% else %}kwartału{% endif %}
+  </h1>
+  <div class="btn-group">
+    <a class="btn {% if period == 'week' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="{% url 'show_weekly_statistics' %}">Tydzień</a>
+    <a class="btn {% if period == 'month' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="{% url 'show_monthly_statistics' %}">Miesiąc</a>
+    <a class="btn {% if period == 'quarter' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="{% url 'show_quarterly_statistics' %}">Kwartał</a>
+  </div>
+</div>
+<p class="text-muted mb-4">{{ period_start|date:"d.m.Y" }} – {{ period_end|date:"d.m.Y" }}</p>
+
+<div class="row g-3 mb-3">
+  <div class="col-md-4">
+    <button type="button" class="card stat-tile stat-todo shadow-sm text-center w-100 h-100"
+            data-bs-toggle="collapse" data-bs-target="#list-todo" aria-expanded="false" aria-controls="list-todo">
+      <div class="card-body w-100">
+        <div class="text-muted small">Do zrobienia</div>
+        <div class="fs-2 fw-bold">{{ statistics.todo_tasks|length }}</div>
+        <div class="small text-muted">kliknij, aby zobaczyć listę</div>
+      </div>
+    </button>
+  </div>
+  <div class="col-md-4">
+    <button type="button" class="card stat-tile stat-done shadow-sm text-center w-100 h-100"
+            data-bs-toggle="collapse" data-bs-target="#list-done" aria-expanded="false" aria-controls="list-done">
+      <div class="card-body w-100">
+        <div class="text-muted small">Zrobione</div>
+        <div class="fs-2 fw-bold">{{ statistics.done_tasks|length }}</div>
+        <div class="small text-muted">kliknij, aby zobaczyć listę</div>
+      </div>
+    </button>
+  </div>
+  <div class="col-md-4">
+    <button type="button" class="card stat-tile stat-overdue shadow-sm text-center w-100 h-100"
+            data-bs-toggle="collapse" data-bs-target="#list-overdue" aria-expanded="false" aria-controls="list-overdue">
+      <div class="card-body w-100">
+        <div class="text-muted small">Zaległe</div>
+        <div class="fs-2 fw-bold">{{ statistics.overdue_tasks|length }}</div>
+        <div class="small text-muted">wszystkie, niezależnie od okresu</div>
+      </div>
+    </button>
+  </div>
+</div>
+
+<div id="statLists" class="mb-4">
+  <div class="collapse" id="list-todo" data-bs-parent="#statLists">
+    <h5 class="mt-2 mb-3">Do zrobienia</h5>
+    {% include "planner/stat_task_list.html" with tasks=statistics.todo_tasks empty_text="Brak zadań do zrobienia w tym okresie." %}
+  </div>
+  <div class="collapse" id="list-done" data-bs-parent="#statLists">
+    <h5 class="mt-2 mb-3">Zrobione</h5>
+    {% include "planner/stat_task_list.html" with tasks=statistics.done_tasks empty_text="W tym okresie nic jeszcze nie zostało zrobione." %}
+  </div>
+  <div class="collapse" id="list-overdue" data-bs-parent="#statLists">
+    <h5 class="mt-2 mb-3">Zaległe</h5>
+    {% include "planner/stat_task_list.html" with tasks=statistics.overdue_tasks empty_text="Brak zaległych zadań. Brawo!" %}
+  </div>
+</div>
+
+<div class="card shadow-sm">
+  <div class="card-body">
+    <h5 class="card-title">
+      {% if period == "week" %}Dzień po dniu{% else %}Tydzień po tygodniu{% endif %}
+    </h5>
+    {% if chart.has_data %}
+      <canvas id="periodChart"></canvas>
+    {% else %}
+      <p class="text-muted text-center my-5">Brak zadań w tym okresie.</p>
+    {% endif %}
+  </div>
+</div>
+
+{{ chart|json_script:"chart-data" }}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{% static 'js/chart.js' %}"></script>
+{% endblock %}

@@ -1,37 +1,30 @@
-const categoryDataElement = document.getElementById("category-data")
-const categoryData = JSON.parse(categoryDataElement.textContent)
-const labels = categoryData.map(item => item["category__name"]);
-const data = categoryData.map(item => item["count"]);
-const categoryChart = document.getElementById("categoryChart")
+const canvas = document.getElementById("periodChart");
 
-new Chart(categoryChart, {
-    type: "bar",
-    data: {
-        labels: labels,
-        datasets: [
-            {
-                label: "Wykonane taski",
-                data: data
+if (canvas) {
+    const chart = JSON.parse(document.getElementById("chart-data").textContent);
+
+    // kolory z base.html
+    const styles = getComputedStyle(document.documentElement);
+    const color = name => styles.getPropertyValue(name).trim();
+
+    new Chart(canvas, {
+        type: "bar",
+        data: {
+            labels: chart.labels,
+            datasets: [
+                { label: "Zrobione",     data: chart.done,    backgroundColor: color("--prio-low") },
+                { label: "Do zrobienia", data: chart.todo,    backgroundColor: color("--puder") },
+                { label: "Zaległe",      data: chart.overdue, backgroundColor: color("--prio-high") }
+            ]
+        },
+        options: {
+            plugins: {
+                legend: { position: "bottom" }
+            },
+            scales: {
+                x: { stacked: true },
+                y: { stacked: true, beginAtZero: true, ticks: { precision: 0 } }
             }
-        ]
-    }
-});
-
-const donetaskDataElement = document.getElementById("donetask-data");
-const donetaskData = JSON.parse(donetaskDataElement.textContent);
-const dayLabels = donetaskData.map(item => item["day"]);
-const dayData = donetaskData.map(item => item["count"]);
-const donetaskChart = document.getElementById("doneTasksChart");
-
-new Chart(donetaskChart, {
-    type: "line",
-    data: {
-        labels: dayLabels,
-        datasets: [
-            {
-                label: "Zrobione taski",
-                data: dayData
-            }
-        ]
-    }
-});
+        }
+    });
+}

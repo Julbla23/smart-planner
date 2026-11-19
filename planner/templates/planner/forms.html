@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}{% if editing %}Edytuj task{% else %}Nowy task{% endif %}{% endblock %}
+{% block title %}{% if editing %}Edytuj zadanie{% else %}Nowe zadanie{% endif %}{% endblock %}
 
 {% block content %}
 <div class="row justify-content-center">
@@ -8,7 +8,7 @@
 
     <div class="card shadow-sm mb-4">
       <div class="card-body p-4">
-        <h3 class="mb-4">{% if editing %}Edytuj task{% else %}Nowy task{% endif %}</h3>
+        <h3 class="mb-4">{% if editing %}Edytuj zadanie{% else %}Nowe zadanie{% endif %}</h3>
 
         {% for error in form.non_field_errors %}
           <div class="alert alert-danger">{{ error }}</div>
@@ -32,7 +32,7 @@
 
           <div class="d-flex gap-2">
             <button type="submit" class="btn btn-primary">
-              {% if editing %}Zaktualizuj task{% else %}Zapisz task{% endif %}
+              {% if editing %}Zaktualizuj zadanie{% else %}Zapisz zadanie{% endif %}
             </button>
             <a class="btn btn-outline-primary" href="{% url 'task_list' %}">Anuluj</a>
           </div>
@@ -46,6 +46,8 @@
         <form method="post" action="{% url 'add_category' %}">
           {% csrf_token %}
           <div class="input-group">
+            <input type="color" name="color" class="form-control form-control-color"
+                   value="#f4c2c2" title="Kolor kategorii">
             <input type="text" name="name" class="form-control" placeholder="Nazwa nowej kategorii" required>
             <button type="submit" class="btn btn-outline-primary">Dodaj kategorię</button>
           </div>
@@ -65,7 +67,7 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Zamknij"></button>
       </div>
       <div class="modal-body">
-        <p>Ten task nachodzi na następujące zadania:</p>
+        <p>To zadanie nachodzi na następujące zadania:</p>
         <ul>
           {% for task in overlapping_tasks %}
             <li><strong>{{ task.name }}</strong><br>{{ task.planned_date }}</li>

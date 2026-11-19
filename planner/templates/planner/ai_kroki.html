@@ -14,13 +14,11 @@
         <form method="post" id="goalForm">
           {% csrf_token %}
           <label for="goal" class="form-label">Cel</label>
-          <div class="input-group">
-            <input type="text" id="goal" name="goal" class="form-control"
-                   placeholder="np. Przygotować się do rozmowy o pracę" required>
-            <button type="submit" name="akcja" value="zaproponuj" class="btn btn-primary" id="goalButton">
-              Zaproponuj kroki
-            </button>
-          </div>
+          <input type="text" id="goal" name="goal" class="form-control mb-3"
+                 placeholder="np. Przygotować się do rozmowy o pracę" required>
+          <button type="submit" name="akcja" value="zaproponuj" class="btn btn-primary w-100" id="goalButton">
+            Zaproponuj kroki
+          </button>
         </form>
       </div>
     </div>
@@ -44,7 +42,7 @@
 
           <div class="mt-4 mb-3">
             <label for="data" class="form-label">Data</label>
-            <input type="date" id="data" name="data" class="form-control">
+            <input type="text" id="data" name="data" class="form-control" data-picker="date" required>
           </div>
 
           <button type="submit" name="akcja" value="dodaj" class="btn btn-primary">Dodaj wybrane</button>

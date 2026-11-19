@@ -5,23 +5,66 @@
 {% block content %}
 <div class="row justify-content-center">
   <div class="col-12 col-md-8 col-lg-6">
-    <div class="card p-4 p-md-5 text-center">
+    <div class="card shadow-sm p-4 p-md-5">
 
-      <h1 class="mb-1">Witaj, {{ user.username }} 👋</h1>
-      <p class="text-muted fs-5 mb-4">Co dziś robimy?</p>
-
-      <div class="d-grid gap-2 mb-4">
-        <a class="btn btn-primary btn-lg" href="{% url 'task_list' %}">Wyświetl taski</a>
-        <a class="btn btn-primary btn-lg" href="{% url 'add_task' %}">Dodaj taska</a>
-        <a class="btn btn-outline-primary btn-lg" href="{% url 'ai_kroki' %}">✨ Rozbij cel</a>
-        <a class="btn btn-outline-primary btn-lg" href="{% url 'calendar' %}">Pokaż kalendarz</a>
+      <div class="text-center mb-4">
+        <h1 class="mb-1">Witaj, {{ user.username }} 👋</h1>
+        <p class="text-muted mb-0">{% now "d.m.Y" %}</p>
       </div>
 
-      <h2 class="h5 mb-3">Statystyki</h2>
-      <div class="d-flex justify-content-center flex-wrap gap-2">
-        <a class="btn btn-outline-primary" href="{% url 'show_weekly_statistics' %}">Tygodniowe</a>
-        <a class="btn btn-outline-primary" href="{% url 'show_monthly_statistics' %}">Miesięczne</a>
-        <a class="btn btn-outline-primary" href="{% url 'show_quarterly_statistics' %}">Kwartalne</a>
+      <div class="row g-2 text-center mb-4">
+        <div class="col-4">
+          <div class="rounded-3 p-2 h-100" style="background: #fdf0f0;">
+            <div class="fs-3 fw-bold">{{ todo_count }}</div>
+            <div class="small text-muted">do zrobienia</div>
+          </div>
+        </div>
+        <div class="col-4">
+          <div class="rounded-3 p-2 h-100" style="background: #eaf7f1;">
+            <div class="fs-3 fw-bold">{{ done_count }}</div>
+            <div class="small text-muted">zrobione</div>
+          </div>
+        </div>
+        <div class="col-4">
+          <a href="{% url 'show_weekly_statistics' %}" class="text-decoration-none text-reset">
+            <div class="rounded-3 p-2 h-100" style="background: {% if overdue_count %}#fbe4ec{% else %}#f5f5f5{% endif %};">
+              <div class="fs-3 fw-bold">{{ overdue_count }}</div>
+              <div class="small text-muted">zaległe</div>
+            </div>
+          </a>
+        </div>
+      </div>
+
+      <div class="mb-4">
+        <div class="d-flex justify-content-between small mb-1">
+          <span>Wykonanie dnia</span>
+          <strong>{{ percentage }}%</strong>
+        </div>
+        <div class="progress" style="height: 8px;">
+          <div class="progress-bar" style="width: {{ percentage }}%; background-color: var(--roz);"></div>
+        </div>
+      </div>
+
+      <div class="border rounded-3 p-3 mb-4">
+        <div class="small text-muted mb-1">Następne zadanie</div>
+        {% if next_task %}
+          <div class="fw-semibold">
+            {{ next_task.planned_date|time:"H:i" }} · {{ next_task.name }}
+          </div>
+          <span class="badge badge-priority-{{ next_task.priority }} mt-1">{{ next_task.get_priority_display }}</span>
+        {% elif todo_count %}
+          <div class="text-muted">Na dziś nic więcej nie zaplanowane na później.</div>
+        {% else %}
+          <div class="text-muted">Na dziś wszystko zrobione albo nic nie zaplanowane. 🌸</div>
+        {% endif %}
+      </div>
+
+      <div class="d-grid gap-2">
+        <a class="btn btn-primary btn-lg" href="{% url 'task_list' %}">Zobacz zadania na dziś</a>
+        <div class="d-flex gap-2">
+          <a class="btn btn-outline-primary flex-fill" href="{% url 'add_task' %}">+ Dodaj zadanie</a>
+          <a class="btn btn-outline-primary flex-fill" href="{% url 'ai_kroki' %}">✨ Rozbij cel</a>
+        </div>
       </div>
 
     </div>

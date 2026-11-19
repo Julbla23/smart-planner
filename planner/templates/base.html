@@ -1,19 +1,21 @@
-{% load static %}
 <!doctype html>
 <html lang="pl">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}Smart Planner{% endblock %}</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+
   <style>
+    /* ===== Kolory ===== */
     :root {
-      --roz: #d63384;           /* róż paska nawigacji */
+      --roz: #d63384;           /* mocny róż */
       --puder: #f4c2c2;         /* pudrowy róż przycisków */
-      --puder-ciemny: #e8a5a5;  /* ciemniejszy, po najechaniu myszką */
+      --puder-ciemny: #e8a5a5;  /* po najechaniu myszką */
       --tekst: #5a2a35;         /* ciemny tekst na przyciskach */
 
       --prio-high: #c2185b;     /* malinowy */
@@ -21,14 +23,15 @@
       --prio-low: #7fcfae;      /* miętowy */
     }
 
-    /* ===== Nawigacja ===== */
-    .navbar-pink {
-    background-color: #fff;
-    box-shadow: 0 1px 8px rgba(90, 42, 53, 0.08);
-  }
-    .navbar-pink .navbar-brand { color: var(--roz); }
-    .navbar-pink .nav-link { color: var(--tekst); }
-    .navbar-pink .nav-link:hover { color: var(--roz); }
+    /* ===== Ogólne ===== */
+    body { font-family: "Inter", system-ui, sans-serif; }
+    .card { border: 0; border-radius: 1rem; }
+
+    /* ===== Pasek nawigacji ===== */
+    .navbar-brand { color: var(--roz) !important; font-weight: 600; }
+    .navbar .nav-link { color: var(--tekst); }
+    .navbar .nav-link:hover { color: var(--roz); }
+    .navbar .nav-link.active { color: var(--roz); font-weight: 600; }
 
     /* ===== Przyciski ===== */
     .btn-primary {
@@ -43,7 +46,6 @@
       --bs-btn-active-color: var(--tekst);
       --bs-btn-focus-shadow-rgb: 244, 194, 194;
     }
-
     .btn-outline-primary {
       --bs-btn-color: #b5536a;
       --bs-btn-border-color: var(--puder);
@@ -57,70 +59,63 @@
     }
 
     /* ===== Priorytety ===== */
-    /* kolorowy pasek z lewej strony zadania */
     .priority-high   { box-shadow: inset 4px 0 0 var(--prio-high);   padding-left: 0.75rem; }
     .priority-medium { box-shadow: inset 4px 0 0 var(--prio-medium); padding-left: 0.75rem; }
     .priority-low    { box-shadow: inset 4px 0 0 var(--prio-low);    padding-left: 0.75rem; }
 
-    /* plakietka z nazwą priorytetu */
     .badge-priority-high   { background-color: var(--prio-high); color: #fff; }
     .badge-priority-medium { background-color: #fde0cc; color: #7a3e1d; }
     .badge-priority-low    { background-color: #d9f3e8; color: #1f5c45; }
 
-/* ===== Wygląd ogólny ===== */
-body {
-  font-family: "Inter", system-ui, sans-serif;
-  background-color: #fdf7f9;   /* ciepła, lekko różowa biel zamiast szarości */
-  color: #3b2a30;
-}
+    /* ===== Kalendarz flatpickr ===== */
+    .flatpickr-day.selected,
+    .flatpickr-day.selected:hover,
+    .flatpickr-day.today.selected {
+      background: var(--roz);
+      border-color: var(--roz);
+    }
+    .flatpickr-day.today { border-color: var(--puder); }
+    .flatpickr-day:hover { background: var(--puder); border-color: var(--puder); }
 
-/* Linki w kolorze motywu zamiast niebieskiego */
-a { color: #b5536a; }
-a:hover { color: var(--roz); }
-
-/* Karty: zaokrąglone, bez ramki, z delikatnym cieniem */
-.card {
-  border: 0;
-  border-radius: 1rem;
-  box-shadow: 0 6px 24px rgba(214, 51, 132, 0.08);
-}
-
-/* Pola formularza: różowa obwódka po kliknięciu zamiast niebieskiej */
-.form-control:focus,
-.form-select:focus {
-  border-color: var(--puder-ciemny);
-  box-shadow: 0 0 0 0.25rem rgba(244, 194, 194, 0.5);
-}
-
-/* Nagłówki i logo trochę mocniejsze */
-h1, h2, h3, .navbar-brand { font-weight: 600; }
-
+      /* ===== Kategorie ===== */
+    .category-dot {
+      display: inline-block;
+      width: .6rem;
+      height: .6rem;
+      border-radius: 50%;
+      margin-right: .25rem;
+      vertical-align: middle;
+    }
   </style>
+
   {% block extra_head %}{% endblock %}
 </head>
 <body class="bg-light">
-  <nav class="navbar navbar-expand-md navbar-light navbar-pink mb-4">    <div class="container">
+  <nav class="navbar navbar-expand-md bg-white shadow-sm mb-4">
+    <div class="container">
       <a class="navbar-brand" href="{% url 'home' %}">Smart Planner</a>
 
       {% if user.is_authenticated %}
-      <button class="navbar-toggler" type="button"
-              data-bs-toggle="collapse" data-bs-target="#glowneMenu"
-              aria-controls="glowneMenu" aria-expanded="false" aria-label="Pokaż menu">
-        <span class="navbar-toggler-icon"></span>
-      </button>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav"
+                aria-controls="mainNav" aria-expanded="false" aria-label="Pokaż menu">
+          <span class="navbar-toggler-icon"></span>
+        </button>
 
-      <div class="collapse navbar-collapse" id="glowneMenu">
-        <div class="navbar-nav me-auto">
-          <a class="nav-link" href="{% url 'home' %}">Dziś</a>
-          <a class="nav-link" href="{% url 'calendar' %}">Kalendarz</a>
-          <a class="nav-link" href="{% url 'show_weekly_statistics' %}">Statystyki</a>
-          <a class="nav-link" href="{% url 'ai_kroki' %}">✨ Rozbij cel</a>
+        <div class="collapse navbar-collapse" id="mainNav">
+          {% with url_name=request.resolver_match.url_name %}
+          <div class="navbar-nav me-auto">
+            <a class="nav-link {% if url_name == 'home' %}active{% endif %}" href="{% url 'home' %}">Dziś</a>
+            <a class="nav-link {% if url_name == 'calendar' or url_name == 'tasks_by_day' %}active{% endif %}" href="{% url 'calendar' %}">Kalendarz</a>
+            <a class="nav-link {% if 'statistics' in url_name %}active{% endif %}" href="{% url 'show_weekly_statistics' %}">Statystyki</a>
+            <a class="nav-link {% if url_name == 'ai_kroki' %}active{% endif %}" href="{% url 'ai_kroki' %}">✨ Rozbij cel</a>
+          </div>
+          {% endwith %}
+
+          <form method="post" action="{% url 'logout' %}" class="mt-2 mt-md-0">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-outline-primary btn-sm">Wyloguj</button>
+          </form>
         </div>
-        <form method="post" action="{% url 'logout' %}" class="mt-2 mt-md-0">
-          {% csrf_token %}
-          <button class="btn btn-outline-primary btn-sm">Wyloguj</button>
-        </form>
-      </div>
       {% endif %}
     </div>
   </nav>
@@ -128,7 +123,7 @@ h1, h2, h3, .navbar-brand { font-weight: 600; }
   <main class="container">
     {% if messages %}
       {% for message in messages %}
-        <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show">
+        <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show shadow-sm" role="alert">
           {{ message }}
           <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Zamknij"></button>
         </div>
@@ -139,29 +134,29 @@ h1, h2, h3, .navbar-brand { font-weight: 600; }
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/pl.js"></script>
-<script>
-  document.querySelectorAll('[data-picker="datetime"]').forEach(function (el) {
-    flatpickr(el, {
-      enableTime: true,
-      time_24hr: true,
-      dateFormat: "Y-m-d H:i",
-      altInput: true,
-      altFormat: "d.m.Y, H:i",
-      locale: "pl",
-      minuteIncrement: 5
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/pl.js"></script>
+  <script>
+    document.querySelectorAll('[data-picker="datetime"]').forEach(function (el) {
+      flatpickr(el, {
+        enableTime: true,
+        time_24hr: true,
+        dateFormat: "Y-m-d H:i",   // format wysyłany do Django
+        altInput: true,
+        altFormat: "d.m.Y H:i",    // format, który widzisz w polu
+        locale: "pl",
+        minuteIncrement: 5
+      });
     });
-  });
 
-  document.querySelectorAll('[data-picker="date"]').forEach(function (el) {
-    flatpickr(el, {
-      dateFormat: "Y-m-d",
-      altInput: true,
-      altFormat: "d.m.Y",
-      locale: "pl"
+    document.querySelectorAll('[data-picker="date"]').forEach(function (el) {
+      flatpickr(el, {
+        dateFormat: "Y-m-d",
+        altInput: true,
+        altFormat: "d.m.Y",
+        locale: "pl"
+      });
     });
-  });
-</script>
+  </script>
 </body>
 </html>

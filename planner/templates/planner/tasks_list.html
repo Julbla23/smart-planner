@@ -1,64 +1,122 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Taski na dziś{% endblock %}
+{% block title %}{% if is_today %}Zadania na dziś{% else %}Zadania na {{ selected_date|date:"d.m.Y" }}{% endif %}{% endblock %}
 
 {% block extra_head %}
 <link href="{% static 'css/axis.css' %}" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
+{% if not is_today %}
+  <a href="{% url 'calendar_month' selected_date.year selected_date.month %}" class="small d-inline-block mb-2">← Kalendarz</a>
+{% endif %}
+
 <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
-  <h1 class="mb-0">Taski na dziś</h1>
-  <a class="btn btn-primary" href="{% url 'add_task' %}">+ Dodaj task</a>
+  <h1 class="mb-0">
+    {% if is_today %}Zadania na dziś{% else %}Zadania na {{ selected_date|date:"d.m.Y" }}{% endif %}
+  </h1>
+  <a class="btn btn-primary" href="{% url 'add_task' %}">+ Dodaj zadanie</a>
 </div>
 
-<p class="axis-warning"></p>
+{% if is_today %}
+  <p class="axis-warning text-muted small"></p>
+{% endif %}
 
 <div class="card shadow-sm mb-4">
   <div class="card-body">
     <div class="d-flex justify-content-between mb-1">
       <span>Wykonanie dnia</span>
-      <strong>{{ percentage|floatformat:0 }}%</strong>
+      <strong>{{ percentage }}%</strong>
     </div>
     <div class="progress" style="height: 10px;">
-      <div class="progress-bar" style="width: {{ percentage|floatformat:0 }}%; background-color: var(--roz);"></div>
+      <div class="progress-bar" style="width: {{ percentage }}%; background-color: var(--roz);"></div>
     </div>
   </div>
 </div>
 
 {% if tasks %}
 <div class="day-axis">
-  <div class="current-time-line"></div>
+  {% if is_today %}<div class="current-time-line"></div>{% endif %}
   <ol>
-{% for task in tasks %}
-  <li data-task-id="{{ task.id }}" class="priority-{{ task.priority }}">
-    {% if task.status == "done" %}
-      <s class="text-muted">{{ task.name }}</s>
-    {% else %}
-      {{ task.name }}
-      <span class="badge badge-priority-{{ task.priority }}">{{ task.get_priority_display }}</span>
-      <a class="btn btn-primary btn-sm" href="{% url 'status_done' task.id %}">Zrobione</a>
-    {% endif %}
-    <a class="btn btn-outline-primary btn-sm" href="{% url 'edit_task' task.id %}">Edytuj</a>
-    <a class="btn btn-outline-danger btn-sm" href="{% url 'delete_task' task.id %}">Usuń</a>
-  </li>
-{% empty %}
-  <li class="list-unstyled text-center text-muted py-5">
-    Brak zadań na dziś.
-    <a href="{% url 'ai_kroki' %}">Rozbij cel na kroki ✨</a>
-  </li>
-{% endfor %}
+    {% for task in tasks %}
+      <li data-task-id="{{ task.id }}"
+          class="priority-{{ task.priority }} d-flex justify-content-between align-items-center gap-2 py-1">
+
+        <div class="flex-grow-1">
+          <span class="text-muted small me-1">
+            {{ task.planned_date|time:"H:i" }} · {{ task.duration_minutes }} min
+            {% if task.category %}
+              · <span class="category-dot" style="background: {{ task.category.color|default:'#ccc' }}"></span>{{ task.category.name }}
+            {% endif %}
+          </span>
+          {% if task.status == "done" %}
+            <s class="text-muted">{{ task.name }}</s>
+          {% else %}
+            {{ task.name }}
+            <span class="badge badge-priority-{{ task.priority }}">{{ task.get_priority_display }}</span>
+          {% endif %}
+        </div>
+
+        <div class="d-flex gap-1 flex-shrink-0">
+          {% if task.status != "done" %}
+            <form method="post" action="{% url 'status_done' task.id %}">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-primary btn-sm">Zrobione</button>
+            </form>
+          {% endif %}
+          <a class="btn btn-outline-primary btn-sm" href="{% url 'edit_task' task.id %}">Edytuj</a>
+          <button type="button" class="btn btn-outline-danger btn-sm"
+                  data-bs-toggle="modal" data-bs-target="#deleteModal"
+                  data-task-name="{{ task.name }}"
+                  data-delete-url="{% url 'delete_task' task.id %}">
+            Usuń
+          </button>
+        </div>
+
+      </li>
+    {% endfor %}
   </ol>
 </div>
 {% else %}
 <div class="card shadow-sm">
   <div class="card-body text-center text-muted">
-    Nie masz zaplanowanych tasków na dziś.
+    {% if is_today %}Nie masz zaplanowanych zadań na dziś.{% else %}Brak zadań tego dnia.{% endif %}
   </div>
 </div>
 {% endif %}
 
-<script src="{% static 'js/change_order.js' %}"></script>
-<script src="{% static 'js/axis.js' %}"></script>
+<!-- Okienko potwierdzenia usunięcia (jedno dla wszystkich zadań) -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="deleteModalLabel">Usunąć zadanie?</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Zamknij"></button>
+      </div>
+      <div class="modal-body">
+        Zadanie <strong id="deleteTaskName"></strong> zostanie usunięte na zawsze.
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-primary" data-bs-dismiss="modal">Anuluj</button>
+        <form method="post" id="deleteForm">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-danger">Usuń</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const deleteModal = document.getElementById("deleteModal");
+  deleteModal.addEventListener("show.bs.modal", function (event) {
+    const button = event.relatedTarget;
+    document.getElementById("deleteTaskName").textContent = button.dataset.taskName;
+    document.getElementById("deleteForm").action = button.dataset.deleteUrl;
+  });
+</script>
+{% if is_today %}
+  <script src="{% static 'js/axis.js' %}"></script>
+{% endif %}
 {% endblock %}

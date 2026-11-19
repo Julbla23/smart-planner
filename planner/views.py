@@ -1,73 +1,52 @@
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, redirect, get_object_or_404
-from django.http import HttpResponse, JsonResponse
-
-from .ai import rozbij_cel_na_kroki
-from .forms import AddTask, EditTask
-from .models import Task, Category, TaskMoveHistory
-from calendar import monthcalendar, month_name
-from datetime import datetime, date, timedelta
-import json
-from django.contrib.auth.forms import UserCreationForm
-from django.utils import timezone
-from django.db.models import Count
-from django.db.models.functions import TruncDate
+import re
+from calendar import monthcalendar
+from datetime import date, timedelta
 from django.contrib import messages
-from .forms import GoalForm
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import UserCreationForm
+from django.db.models import Count, Q
+from django.db.models.functions import ExtractDay, TruncDate
+from django.http import Http404
+from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
+from django.views.decorators.http import require_POST
 from .ai import rozbij_cel_na_kroki
-
+from .forms import AddTask, EditTask, GoalForm
+from .models import Category, Task, TaskMoveHistory
 
 @login_required
 def task_list(request):
-    tasks = Task.objects.filter(planned_date__date = date.today(), user=request.user).order_by("position")
-    percentage = complete_percentage(request)
-    return render(request, "planner/tasks_list.html", {"tasks": tasks, "percentage": percentage})
+    today = date.today()
+    tasks = Task.objects.filter(planned_date__date=today, user=request.user).order_by("planned_date")
+    return render(request, "planner/tasks_list.html", {
+        "tasks": tasks,
+        "percentage": complete_percentage(request),
+        "selected_date": today,
+        "is_today": True,
+    })
 
 @login_required
 def backlog_tasks_list(request):
     backlog_tasks = Task.objects.filter(planned_date__lt = timezone.now(), status="todo", user=request.user)
     return render(request, "planner/backlog_tasks_list.html", {"backlog_tasks": backlog_tasks})
 
-@login_required
-def change_order(request):
-    if request.method == "POST":
-        data = json.loads(request.body)
-        order = data.get("order")
-        if order:
-            for position, task_id in enumerate(order, 1):
-                task = get_object_or_404(Task, id=task_id, user=request.user)
-                task.position = position
-                task.save()
-            return JsonResponse({"success": True})
-
-    return JsonResponse({"success": False})
-"""
-Task.object.all() to mój model, czyli tabela w bazie danych <- pobierz wszystkie taski z tabeli Task
-objects to manager django do niego się zawsze zwracamy np. Tasks.objects.filter(...)
-render() mówi django Weź template HTML, włóż do niego dane i odeślij gotową stronę do przeglądarki.
-request - żądnanie użytkownika
-planner/tasks)list.html - plik html, który ma zostać pokazany
-{"tasks": tasks} - dane przekazane do HTMLa; słownik
-views.py:
-pobiera dane
-
-template:
-wyświetla dane
-"""
-
+@require_POST
 @login_required
 def delete_task(request, n):
     task = get_object_or_404(Task, id=n, user=request.user)
     task.delete()
-    messages.success(request, "Task usunięty")
+    messages.success(request, f"Usunięto: {task.name}")
     return redirect("task_list")
 
+
+@require_POST
 @login_required
 def status_done(request, n):
     task = get_object_or_404(Task, id=n, user=request.user)
     task.status = "done"
     task.status_changed_at = timezone.now()
     task.save()
+    messages.success(request, f"Zrobione: {task.name} 🎉")
     return redirect("task_list")
 
 
@@ -103,13 +82,12 @@ def find_over_lapping_tasks(
 @login_required
 def add_task(request):
     if request.method == "POST":
-        form = AddTask(request.POST)
+        form = AddTask(request.POST, user=request.user)
         if form.is_valid():
             name = form.cleaned_data['title']
             priority = form.cleaned_data['priority']
             planned_date = form.cleaned_data['planned_date']
             duration_minutes = form.cleaned_data['duration_minutes']
-            status = form.cleaned_data['status']
             category= form.cleaned_data['category']
             deadline = form.cleaned_data['deadline']
 
@@ -127,34 +105,62 @@ def add_task(request):
                         "overlapping_tasks" : overlapping_tasks
                     }
                 )
-            Task.objects.create(name=name, priority=priority, planned_date=planned_date, duration_minutes=duration_minutes, status=status, category=category, deadline=deadline, user=request.user)
-            messages.success(request, "Task dodany")
+            Task.objects.create(name=name, priority=priority, planned_date=planned_date, duration_minutes=duration_minutes, category=category, deadline=deadline, user=request.user)
+            messages.success(request, "Zadanie dodane")
             return redirect("task_list")
     else:
-        form = AddTask()
+        form = AddTask(user=request.user)
     return render(request, "planner/forms.html", {"form": form})
 
 @login_required
 def edit_task(request, n):
     task = get_object_or_404(Task, id=n, user=request.user)
     old_planned_date = task.planned_date
-    if request.method =="POST":
-        form = EditTask(request.POST, instance=task) #bierze dane z formularza, bierze istniejący task, nakłada nowe dane na ten obiekt
-        if form.is_valid():
-            new_planned_date = form.cleaned_data['planned_date']
-            if old_planned_date != new_planned_date:
-                task.status = "moved"
-                task.status_changed_at = timezone.now()
-                TaskMoveHistory.objects.create(task=task, old_planned_date=old_planned_date,new_planned_date=new_planned_date)
-            form.save()
-            return redirect("home")
-    else:
-        form = EditTask(instance=task)
-    return render(request, "planner/forms.html", {"form": form,"editing": True})
+    old_status = task.status
 
+    if request.method == "POST":
+        form = EditTask(request.POST, instance=task, user=request.user)
+        if form.is_valid():
+            new_planned_date = form.cleaned_data["planned_date"]
+            new_status = form.cleaned_data["status"]
+
+            # przesunięcie: zapisujemy historię, ale status zostaje bez zmian
+            if old_planned_date != new_planned_date:
+                TaskMoveHistory.objects.create(
+                    task=task,
+                    old_planned_date=old_planned_date,
+                    new_planned_date=new_planned_date,
+                )
+
+            # zmiana statusu: zapamiętujemy kiedy (potrzebne do statystyk)
+            if old_status != new_status:
+                task.status_changed_at = timezone.now()
+
+            form.save()
+            messages.success(request, "Zmiany zapisane")
+            return redirect("task_list")
+    else:
+        form = EditTask(instance=task, user=request.user)
+
+    return render(request, "planner/forms.html", {"form": form, "editing": True})
 @login_required
 def home(request):
-    return render(request, "planner/home.html",)
+    today = date.today()
+    is_overdue = Q(planned_date__date__lt=today) | Q(deadline__lt=today)
+
+    today_tasks = Task.objects.filter(user=request.user, planned_date__date=today)
+
+    context = {
+        "todo_count": today_tasks.filter(status="todo").exclude(is_overdue).count(),
+        "done_count": today_tasks.filter(status="done").count(),
+        "overdue_count": Task.objects.filter(is_overdue, user=request.user, status="todo").count(),
+        "next_task": (today_tasks
+                      .filter(status="todo", planned_date__gte=timezone.now())
+                      .order_by("planned_date")
+                      .first()),
+        "percentage": complete_percentage(request),
+    }
+    return render(request, "planner/home.html", context)
 
 MIESIACE = [
     "", "Styczeń", "Luty", "Marzec", "Kwiecień", "Maj", "Czerwiec",
@@ -163,38 +169,79 @@ MIESIACE = [
 
 
 @login_required
-def calendar(request):
+def calendar(request, year=None, month=None):
     today = date.today()
-    year = today.year
-    month = today.month
+    year = year or today.year
+    month = month or today.month
 
-    calendar_data = monthcalendar(year, month)
+    if not 1 <= month <= 12:
+        raise Http404("Nie ma takiego miesiąca")
+
+    # ile zadań jest w każdym dniu miesiąca, np. {3: 2, 18: 6}
+    rows = (Task.objects
+            .filter(user=request.user, planned_date__year=year, planned_date__month=month)
+            .annotate(day=ExtractDay("planned_date"))
+            .values("day")
+            .annotate(count=Count("id")))
+    counts = {row["day"]: row["count"] for row in rows}
+
+    # każdy dzień jako słownik: numer, liczba zadań, czy to dziś
+    weeks = []
+    for week in monthcalendar(year, month):
+        days = []
+        for d in week:
+            days.append({
+                "day": d,
+                "count": counts.get(d, 0),
+                "is_today": d != 0 and date(year, month, d) == today,
+            })
+        weeks.append(days)
+
+    prev_year, prev_month = (year - 1, 12) if month == 1 else (year, month - 1)
+    next_year, next_month = (year + 1, 1) if month == 12 else (year, month + 1)
 
     return render(request, "planner/calendar.html", {
-        "calendar_data": calendar_data,
+        "calendar_data": weeks,
         "month_name": MIESIACE[month],
         "month": month,
         "year": year,
+        "prev_year": prev_year,
+        "prev_month": prev_month,
+        "next_year": next_year,
+        "next_month": next_month,
+        "is_current_month": year == today.year and month == today.month,
     })
 
 @login_required
 def tasks_by_day(request, year, month, day):
-    my_date = date(year, month, day)
-    tasks = Task.objects.filter(planned_date__date=my_date, user=request.user)
-    return render(request, "planner/tasks_list.html", {"tasks": tasks})
+    try:
+        selected_date = date(year, month, day)
+    except ValueError:
+        raise Http404("Nie ma takiego dnia")
 
+    tasks = Task.objects.filter(planned_date__date=selected_date, user=request.user).order_by("planned_date")
+    return render(request, "planner/tasks_list.html", {
+        "tasks": tasks,
+        "percentage": complete_percentage(request, selected_date),
+        "selected_date": selected_date,
+        "is_today": selected_date == date.today(),
+    })
+
+@require_POST
 @login_required
 def add_category(request):
-    if request.method == "POST":
-        category_name = request.POST.get("name").strip()
-        if category_name:
-            if not Category.objects.filter(name=category_name).exists():
-                category = Category.objects.create(
-                    name=category_name,
-                )
-            else:
-                raise Exception("Category already exists")
-    return redirect("add_task")
+    name = request.POST.get("name", "").strip()
+    color = request.POST.get("color", "")
+
+    # przyjmujemy tylko kolor w formacie #rrggbb, np. #f4c2c2
+    if not re.fullmatch(r"#[0-9a-fA-F]{6}", color):
+        color = "#f4c2c2"
+
+    if name:
+        Category.objects.create(name=name, color=color, user=request.user)
+        messages.success(request, f"Dodano kategorię: {name}")
+
+    return redirect(request.META.get("HTTP_REFERER") or "add_task")
 
 def register(request):
     if request.method == 'POST':
@@ -207,66 +254,141 @@ def register(request):
         form = UserCreationForm()
     return render(request, 'planner/register.html', {'form': form})
 
-def complete_percentage(request):
-    done_tasks = Task.objects.filter(planned_date__date=date.today(), status="done", user=request.user).count()
-    all_tasks = Task.objects.filter(planned_date__date=date.today(), user=request.user).count()
-    if all_tasks > 0:
-        result = 100 * done_tasks / all_tasks
-        return f"{result}%"
-    else:
-        return "0%"
-
+def complete_percentage(request, day=None):
+    day = day or date.today()
+    day_tasks = Task.objects.filter(planned_date__date=day, user=request.user)
+    all_tasks = day_tasks.count()
+    if all_tasks == 0:
+        return 0
+    done_tasks = day_tasks.filter(status="done").count()
+    return round(100 * done_tasks / all_tasks)
 
 def statistics(user, period_start, period_end):
     today = date.today()
-    done_tasks = Task.objects.filter(
-        status="done",
-        status_changed_at__date__gte=period_start,
-        status_changed_at__date__lte=period_end,
-        user=user
-    ).count()
-    moved_tasks = TaskMoveHistory.objects.filter(task__user=user, moved_at__date__gte=period_start, moved_at__date__lte=period_end).count()
-    overdue_tasks = Task.objects.filter(status="todo", deadline__lt=today, user=user).count()
-    backlog = Task.objects.filter(deadline__isnull=True, status="todo", user=user).count()
-    category_stats=Task.objects.filter(
-        status="done",
+
+    period_tasks = Task.objects.filter(
+        user=user,
+        status="todo",
         planned_date__date__gte=period_start,
         planned_date__date__lte=period_end,
-        user=user
-    ).values("category__name").annotate(count=Count("id"))
-    category_stats = list(category_stats)
-    for item in category_stats:
-        if item["category__name"] is None:
-            item["category__name"] = "Bez kategorii"
-    done_tasks_by_day = Task.objects.filter(
+    ).select_related("category")
+
+    is_overdue = Q(planned_date__date__lt=today) | Q(deadline__lt=today)
+
+    overdue_tasks = Task.objects.filter(
+        is_overdue,
+        user=user,
+        status="todo",
+    ).select_related("category").order_by("planned_date")
+
+    todo_tasks = period_tasks.exclude(is_overdue).order_by("planned_date")
+
+    done_tasks = Task.objects.filter(
+        user=user,
         status="done",
         status_changed_at__date__gte=period_start,
         status_changed_at__date__lte=period_end,
-        user=user
-    ).annotate(day=TruncDate("status_changed_at")).values("day").annotate(count=Count("id"))
-    done_tasks_by_day = list(done_tasks_by_day)
-    return {"done": done_tasks, "moved": moved_tasks, "overdue": overdue_tasks, "backlog": backlog, "category": category_stats, "day_tasks": done_tasks_by_day}
+    ).select_related("category").order_by("-status_changed_at")
+
+    return {
+        "todo_tasks": todo_tasks,
+        "done_tasks": done_tasks,
+        "overdue_tasks": overdue_tasks,
+    }
+
+
+def chart_buckets(period, period_start, period_end):
+    """Dzieli okres na kawałki: dni (tydzień) albo tygodnie (miesiąc, kwartał)."""
+    day_names = ["Pn", "Wt", "Śr", "Cz", "Pt", "Sb", "Nd"]
+    buckets = []
+
+    if period == "week":
+        day = period_start
+        while day <= period_end:
+            label = f"{day_names[day.weekday()]} {day:%d.%m}"
+            buckets.append((day, day, label))
+            day += timedelta(days=1)
+    else:
+        start = period_start
+        while start <= period_end:
+            end = min(start + timedelta(days=6 - start.weekday()), period_end)
+            buckets.append((start, end, f"{start:%d.%m}–{end:%d.%m}"))
+            start = end + timedelta(days=1)
+
+    return buckets
+
+
+def chart_data(user, period, period_start, period_end):
+    today = date.today()
+    is_overdue = Q(planned_date__date__lt=today) | Q(deadline__lt=today)
+
+    period_todo = Task.objects.filter(
+        user=user,
+        status="todo",
+        planned_date__date__gte=period_start,
+        planned_date__date__lte=period_end,
+    )
+    period_done = Task.objects.filter(
+        user=user,
+        status="done",
+        status_changed_at__date__gte=period_start,
+        status_changed_at__date__lte=period_end,
+    )
+
+    def counts_by_day(queryset, date_field):
+        rows = (queryset.annotate(day=TruncDate(date_field))
+                        .values("day")
+                        .annotate(count=Count("id")))
+        return {row["day"]: row["count"] for row in rows}
+
+    done_by_day = counts_by_day(period_done, "status_changed_at")
+    todo_by_day = counts_by_day(period_todo.exclude(is_overdue), "planned_date")
+    overdue_by_day = counts_by_day(period_todo.filter(is_overdue), "planned_date")
+
+    labels, done, todo, overdue = [], [], [], []
+    for start, end, label in chart_buckets(period, period_start, period_end):
+        days = [start + timedelta(days=i) for i in range((end - start).days + 1)]
+        labels.append(label)
+        done.append(sum(done_by_day.get(d, 0) for d in days))
+        todo.append(sum(todo_by_day.get(d, 0) for d in days))
+        overdue.append(sum(overdue_by_day.get(d, 0) for d in days))
+
+    return {
+        "labels": labels,
+        "done": done,
+        "todo": todo,
+        "overdue": overdue,
+        "has_data": any(done) or any(todo) or any(overdue),
+    }
+
+
+def render_statistics(request, period, period_start, period_end):
+    context = {
+        "statistics": statistics(request.user, period_start, period_end),
+        "chart": chart_data(request.user, period, period_start, period_end),
+        "period": period,
+        "period_start": period_start,
+        "period_end": period_end,
+    }
+    return render(request, "planner/statistics.html", context)
 
 @login_required
 def show_weekly_statistics(request):
     today = date.today()
-    day_of_week = today.weekday()
-    week_start = today - timedelta(days=day_of_week)
+    week_start = today - timedelta(days=today.weekday())
     week_end = week_start + timedelta(days=6)
-    weekly_statistics = statistics(request.user, week_start, week_end)
-    return render(request, "planner/weekly_statistics.html", {"statistics": weekly_statistics})
+    return render_statistics(request, "week", week_start, week_end)
 
 @login_required
 def show_monthly_statistics(request):
     today = date.today()
     month_start = date(today.year, today.month, 1)
     if today.month == 12:
-        next_month_start = date(today.year + 1, 1,1)
+        next_month_start = date(today.year + 1, 1, 1)
     else:
         next_month_start = date(today.year, today.month + 1, 1)
     month_end = next_month_start - timedelta(days=1)
-    monthly_statistics = statistics(request.user, month_start, month_end)
-    return render(request, "planner/monthly_statistics.html", {"statistics": monthly_statistics})
+    return render_statistics(request, "month", month_start, month_end)
 
 @login_required
 def show_quarterly_statistics(request):
@@ -275,12 +397,11 @@ def show_quarterly_statistics(request):
     quarter_start = date(today.year, quarter_start_month, 1)
     next_quarter_start_month = quarter_start_month + 3
     if next_quarter_start_month > 12:
-        next_quarter_start = date(today.year + 1, 1,1)
+        next_quarter_start = date(today.year + 1, 1, 1)
     else:
         next_quarter_start = date(today.year, next_quarter_start_month, 1)
     quarter_end = next_quarter_start - timedelta(days=1)
-    quarterly_statistics = statistics(request.user, quarter_start, quarter_end)
-    return render(request, "planner/quarterly_statistics.html", {"statistics": quarterly_statistics})
+    return render_statistics(request, "quarter", quarter_start, quarter_end)
 
 @login_required
 def ai_kroki(request):
@@ -299,6 +420,9 @@ def ai_kroki(request):
         elif akcja == "dodaj":
             wybrane = request.POST.getlist("kroki")
             data = request.POST.get("data")
+            if not data:
+                messages.error(request, "Wybierz datę, żeby dodać zadania.")
+                return redirect("ai_kroki")
             for krok in wybrane:
                 Task.objects.create(
                     name=krok,
