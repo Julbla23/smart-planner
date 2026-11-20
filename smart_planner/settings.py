@@ -14,8 +14,6 @@ from pathlib import Path
 from dotenv import load_dotenv
 load_dotenv()
 
-from django.conf.global_settings import LOGIN_REDIRECT_URL, LOGOUT_REDIRECT_URL, LOGIN_URL
-
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -27,6 +25,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-mym-_i1-oi#07^!l58u#$=w&w^+azz7ah!h8k$m$4=ajvw^_2)'
 
 # SECURITY WARNING: don't run with debug turned on in production!
+#DEBUG = os.getenv("DJANGO_DEBUG", "False") == True
 DEBUG = True
 
 ALLOWED_HOSTS = []
@@ -107,9 +106,9 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'pl'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Europe/Warsaw'
 
 USE_I18N = True
 
