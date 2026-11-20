@@ -29,8 +29,8 @@
       <span>Wykonanie dnia</span>
       <strong>{{ percentage }}%</strong>
     </div>
-    <div class="progress" style="height: 10px;">
-      <div class="progress-bar" style="width: {{ percentage }}%; background-color: var(--roz);"></div>
+    <div class="progress progress-day">
+      <div class="progress-bar" style="width: {{ percentage }}%;"></div>
     </div>
   </div>
 </div>
@@ -108,14 +108,7 @@
   </div>
 </div>
 
-<script>
-  const deleteModal = document.getElementById("deleteModal");
-  deleteModal.addEventListener("show.bs.modal", function (event) {
-    const button = event.relatedTarget;
-    document.getElementById("deleteTaskName").textContent = button.dataset.taskName;
-    document.getElementById("deleteForm").action = button.dataset.deleteUrl;
-  });
-</script>
+<script src="{% static 'js/delete_modal.js' %}"></script>
 {% if is_today %}
   <script src="{% static 'js/axis.js' %}"></script>
 {% endif %}

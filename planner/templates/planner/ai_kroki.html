@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}Rozbij cel{% endblock %}
 
@@ -54,13 +55,5 @@
   </div>
 </div>
 
-<script>
-document.getElementById("goalForm").addEventListener("submit", function () {
-  const button = document.getElementById("goalButton");
-  setTimeout(function () {
-    button.disabled = true;
-    button.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Myślę...';
-  }, 0);
-});
-</script>
+<script src="{% static 'js/ai_kroki.js' %}"></script>
 {% endblock %}

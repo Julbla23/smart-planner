@@ -1,0 +1,80 @@
+/* ===== Kolory ===== */
+:root {
+  --roz: #d63384;           /* mocny róż */
+  --puder: #f4c2c2;         /* pudrowy róż przycisków */
+  --puder-ciemny: #e8a5a5;  /* po najechaniu myszką */
+  --tekst: #5a2a35;         /* ciemny tekst na przyciskach */
+
+  --prio-high: #c2185b;     /* malinowy */
+  --prio-medium: #f4a26b;   /* brzoskwiniowy */
+  --prio-low: #7fcfae;      /* miętowy */
+}
+
+/* ===== Ogólne ===== */
+body { font-family: "Inter", system-ui, sans-serif; }
+.card { border: 0; border-radius: 1rem; }
+
+/* ===== Pasek nawigacji ===== */
+.navbar-brand { color: var(--roz) !important; font-weight: 600; }
+.navbar .nav-link { color: var(--tekst); }
+.navbar .nav-link:hover { color: var(--roz); }
+.navbar .nav-link.active { color: var(--roz); font-weight: 600; }
+
+/* ===== Przyciski ===== */
+.btn-primary {
+  --bs-btn-bg: var(--puder);
+  --bs-btn-border-color: var(--puder);
+  --bs-btn-color: var(--tekst);
+  --bs-btn-hover-bg: var(--puder-ciemny);
+  --bs-btn-hover-border-color: var(--puder-ciemny);
+  --bs-btn-hover-color: var(--tekst);
+  --bs-btn-active-bg: var(--puder-ciemny);
+  --bs-btn-active-border-color: var(--puder-ciemny);
+  --bs-btn-active-color: var(--tekst);
+  --bs-btn-focus-shadow-rgb: 244, 194, 194;
+}
+
+.btn-outline-primary {
+  --bs-btn-color: #b5536a;
+  --bs-btn-border-color: var(--puder);
+  --bs-btn-hover-bg: var(--puder);
+  --bs-btn-hover-border-color: var(--puder);
+  --bs-btn-hover-color: var(--tekst);
+  --bs-btn-active-bg: var(--puder-ciemny);
+  --bs-btn-active-border-color: var(--puder-ciemny);
+  --bs-btn-active-color: var(--tekst);
+  --bs-btn-focus-shadow-rgb: 244, 194, 194;
+}
+
+/* ===== Priorytety ===== */
+.priority-high   { box-shadow: inset 4px 0 0 var(--prio-high);   padding-left: 0.75rem; }
+.priority-medium { box-shadow: inset 4px 0 0 var(--prio-medium); padding-left: 0.75rem; }
+.priority-low    { box-shadow: inset 4px 0 0 var(--prio-low);    padding-left: 0.75rem; }
+
+.badge-priority-high   { background-color: var(--prio-high); color: #fff; }
+.badge-priority-medium { background-color: #fde0cc; color: #7a3e1d; }
+.badge-priority-low    { background-color: #d9f3e8; color: #1f5c45; }
+
+/* ===== Kalendarz flatpickr ===== */
+.flatpickr-day.selected,
+.flatpickr-day.selected:hover,
+.flatpickr-day.today.selected {
+  background: var(--roz);
+  border-color: var(--roz);
+}
+.flatpickr-day.today { border-color: var(--puder); }
+.flatpickr-day:hover { background: var(--puder); border-color: var(--puder); }
+
+/* ===== Kategorie ===== */
+.category-dot {
+  display: inline-block;
+  width: .6rem;
+  height: .6rem;
+  border-radius: 50%;
+  margin-right: .25rem;
+  vertical-align: middle;
+}
+
+/* ===== Pasek postępu dnia ===== */
+.progress-day { height: 10px; }
+.progress-day .progress-bar { background-color: var(--roz); }

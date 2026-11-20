@@ -1,23 +1,10 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}Kalendarz – {{ month_name }} {{ year }}{% endblock %}
 
 {% block extra_head %}
-<style>
-  .calendar-day { position: relative; }
-  .task-count {
-    position: absolute;
-    top: 3px;
-    right: 5px;
-    min-width: 1.1rem;
-    padding: 0 4px;
-    font-size: .65rem;
-    line-height: 1.1rem;
-    border-radius: 999px;
-    background: var(--roz);
-    color: #fff;
-  }
-</style>
+<link rel="stylesheet" href="{% static 'css/calendar.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -27,7 +14,7 @@
   <a class="btn btn-outline-primary" href="{% url 'calendar_month' next_year next_month %}" aria-label="Następny miesiąc">›</a>
 </div>
 
-<div class="text-center mb-3" style="min-height: 1.5rem;">
+<div class="text-center mb-3 month-reset">
   {% if not is_current_month %}
     <a href="{% url 'calendar' %}" class="small">Wróć do bieżącego miesiąca</a>
   {% endif %}
@@ -36,7 +23,7 @@
 <div class="card shadow-sm">
   <div class="card-body">
     <div class="table-responsive">
-      <table class="table table-bordered text-center align-middle mb-0" style="table-layout: fixed;">
+      <table class="table table-bordered text-center align-middle mb-0 calendar-table">
         <thead>
           <tr>
             <th scope="col">Pon</th>

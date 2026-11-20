@@ -4,19 +4,7 @@
 {% block title %}Statystyki{% endblock %}
 
 {% block extra_head %}
-<style>
-  .stat-tile {
-    border: 0;
-    border-top: 4px solid transparent;
-    cursor: pointer;
-    transition: transform .15s, box-shadow .15s;
-  }
-  .stat-tile:hover { transform: translateY(-2px); box-shadow: 0 .5rem 1rem rgba(0,0,0,.08) !important; }
-  .stat-tile[aria-expanded="true"] { outline: 2px solid var(--puder); }
-  .stat-todo    { border-top-color: var(--puder); }
-  .stat-done    { border-top-color: var(--prio-low); }
-  .stat-overdue { border-top-color: var(--prio-high); }
-</style>
+<link rel="stylesheet" href="{% static 'css/statistics.css' %}">
 {% endblock %}
 
 {% block content %}

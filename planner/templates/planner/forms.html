@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}{% if editing %}Edytuj zadanie{% else %}Nowe zadanie{% endif %}{% endblock %}
 
@@ -70,7 +71,7 @@
         <p>To zadanie nachodzi na następujące zadania:</p>
         <ul>
           {% for task in overlapping_tasks %}
-            <li><strong>{{ task.name }}</strong><br>{{ task.planned_date }}</li>
+            <li><strong>{{ task.name }}</strong><br>{{ task.planned_date|date:"d.m.Y H:i" }}</li>
           {% endfor %}
         </ul>
         <p class="mb-0">Zmień godzinę rozpoczęcia lub czas trwania zadania.</p>
@@ -82,13 +83,6 @@
   </div>
 </div>
 
-<script>
-document.addEventListener("DOMContentLoaded", function () {
-  const modalElement = document.getElementById("overlapModal");
-  if (modalElement) {
-    new bootstrap.Modal(modalElement).show();
-  }
-});
-</script>
+<script src="{% static 'js/overlap_modal.js' %}"></script>
 {% endif %}
 {% endblock %}
