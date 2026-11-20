@@ -36,7 +36,7 @@ A Django web app for planning your day: schedule tasks with times and priorities
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/YOUR-USERNAME/smart-planner.git
+git clone https://github.com/Julbla23/smart-planner.git
 cd smart-planner
 ```
 
@@ -116,8 +116,7 @@ planner/                  # the application
 
 - Automated tests
 - Online deployment
-- Recurring tasks
 
 ## Author
 
-**YOUR NAME** · [GitHub](https://github.com/YOUR-USERNAME) · [LinkedIn](https://www.linkedin.com/in/YOUR-PROFILE)
+**Julia Blaumann** · [GitHub](https://github.com/Julbla23) · [LinkedIn](https://www.linkedin.com/in/julia-blaumann)
