@@ -27,7 +27,7 @@ A Django web app for planning your day: schedule tasks with times and priorities
 
 ## Tech stack
 
-- **Backend:** Python 3.12, Django 5.1, SQLite
+- **Backend:** Python 3.10+, Django 5.1, SQLite
 - **Frontend:** Django templates, Bootstrap 5.3, Chart.js, flatpickr (Polish date picker)
 - **AI:** Groq API
 
@@ -114,7 +114,6 @@ planner/                  # the application
 
 ## Planned improvements
 
-- Automated tests
 - Online deployment
 
 ## Author

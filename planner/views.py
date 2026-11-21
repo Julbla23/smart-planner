@@ -1,6 +1,5 @@
 import re
 from calendar import monthcalendar
-from datetime import date, timedelta
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
@@ -10,6 +9,7 @@ from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_POST
+from datetime import date, datetime, time, timedelta
 from .ai import rozbij_cel_na_kroki
 from .forms import AddTask, EditTask, GoalForm
 from .models import Category, Task, TaskMoveHistory
@@ -420,18 +420,29 @@ def ai_kroki(request):
         elif akcja == "dodaj":
             wybrane = request.POST.getlist("kroki")
             data = request.POST.get("data")
+
             if not data:
                 messages.error(request, "Wybierz datę, żeby dodać zadania.")
                 return redirect("ai_kroki")
+
+            # "2026-11-22" -> 22.11.2026, godz. 9:00, w strefie czasowej aplikacji
+            try:
+                planned_date = timezone.make_aware(
+                    datetime.combine(date.fromisoformat(data), time(9, 0))
+                )
+            except ValueError:
+                messages.error(request, "Nieprawidłowa data.")
+                return redirect("ai_kroki")
+
             for krok in wybrane:
                 Task.objects.create(
                     name=krok,
-                    planned_date=data,
+                    planned_date=planned_date,
                     duration_minutes=30,
                     user=request.user,
                 )
+
             messages.success(request, f"Dodano {len(wybrane)} zadań")
             return redirect("home")
 
     return render(request, "planner/ai_kroki.html", {"form": form, "kroki": kroki})
-

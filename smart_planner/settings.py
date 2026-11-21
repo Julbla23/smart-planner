@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/6.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
-
+import os
 from pathlib import Path
 from dotenv import load_dotenv
 load_dotenv()
@@ -21,13 +21,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-mym-_i1-oi#07^!l58u#$=w&w^+azz7ah!h8k$m$4=ajvw^_2)'
-
 # SECURITY WARNING: don't run with debug turned on in production!
-#DEBUG = os.getenv("DJANGO_DEBUG", "False") == True
-DEBUG = True
-
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
+DEBUG = os.getenv("DJANGO_DEBUG", "False") == "True"
 ALLOWED_HOSTS = []
 
 
@@ -123,3 +119,4 @@ STATIC_URL = 'static/'
 LOGIN_URL = "login"
 LOGIN_REDIRECT_URL = "home"
 LOGOUT_REDIRECT_URL = "login"
+DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
