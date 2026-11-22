@@ -3,7 +3,6 @@ const canvas = document.getElementById("periodChart");
 if (canvas) {
     const chart = JSON.parse(document.getElementById("chart-data").textContent);
 
-    // kolory z base.html
     const styles = getComputedStyle(document.documentElement);
     const color = name => styles.getPropertyValue(name).trim();
 

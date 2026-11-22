@@ -1,4 +1,3 @@
-/* ===== Kafelki statystyk ===== */
 .stat-tile {
   border: 0;
   border-top: 4px solid transparent;
@@ -11,10 +10,8 @@
   box-shadow: 0 .5rem 1rem rgba(0, 0, 0, .08) !important;
 }
 
-/* obrys kafelka, którego lista jest rozwinięta */
 .stat-tile[aria-expanded="true"] { outline: 2px solid var(--puder); }
 
-/* kolorowy pasek u góry każdego kafelka */
 .stat-todo    { border-top-color: var(--puder); }
 .stat-done    { border-top-color: var(--prio-low); }
 .stat-overdue { border-top-color: var(--prio-high); }

@@ -5,7 +5,6 @@ from .models import PRIORITY_CHOICES, Task, Category
 
 
 class BootstrapMixin:
-    """Dodaje klasy Bootstrapa do wszystkich pól formularza."""
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

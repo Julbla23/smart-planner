@@ -1,11 +1,7 @@
-/* ===== Tabela kalendarza ===== */
-/* wszystkie kolumny tej samej szerokości, niezależnie od zawartości */
 .calendar-table { table-layout: fixed; }
 
-/* miejsce na link "Wróć do bieżącego miesiąca", żeby tabela nie skakała */
 .month-reset { min-height: 1.5rem; }
 
-/* ===== Dzień i liczba zadań ===== */
 .calendar-day { position: relative; }
 
 /* malinowa plakietka z liczbą zadań w prawym górnym rogu dnia */

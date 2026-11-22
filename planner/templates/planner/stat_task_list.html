@@ -6,7 +6,7 @@
         <div class="fw-semibold">{{ task.name }}</div>
         <div class="small text-muted">
           {{ task.planned_date|date:"d.m.Y H:i" }}
-          {% if task.deadline %} · deadline {{ task.deadline|date:"d.m.Y" }}{% endif %}
+          {% if task.deadline %} · termin {{ task.deadline|date:"d.m.Y" }}{% endif %}
           {% if task.category %} · <span class="category-dot" style="background: {{ task.category.color|default:'#ccc' }}"></span>{{ task.category.name }}{% endif %}
         </div>
       </div>

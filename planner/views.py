@@ -177,7 +177,6 @@ def calendar(request, year=None, month=None):
     if not 1 <= month <= 12:
         raise Http404("Nie ma takiego miesiąca")
 
-    # ile zadań jest w każdym dniu miesiąca, np. {3: 2, 18: 6}
     rows = (Task.objects
             .filter(user=request.user, planned_date__year=year, planned_date__month=month)
             .annotate(day=ExtractDay("planned_date"))
@@ -185,7 +184,6 @@ def calendar(request, year=None, month=None):
             .annotate(count=Count("id")))
     counts = {row["day"]: row["count"] for row in rows}
 
-    # każdy dzień jako słownik: numer, liczba zadań, czy to dziś
     weeks = []
     for week in monthcalendar(year, month):
         days = []
@@ -233,7 +231,6 @@ def add_category(request):
     name = request.POST.get("name", "").strip()
     color = request.POST.get("color", "")
 
-    # przyjmujemy tylko kolor w formacie #rrggbb, np. #f4c2c2
     if not re.fullmatch(r"#[0-9a-fA-F]{6}", color):
         color = "#f4c2c2"
 
@@ -298,7 +295,6 @@ def statistics(user, period_start, period_end):
 
 
 def chart_buckets(period, period_start, period_end):
-    """Dzieli okres na kawałki: dni (tydzień) albo tygodnie (miesiąc, kwartał)."""
     day_names = ["Pn", "Wt", "Śr", "Cz", "Pt", "Sb", "Nd"]
     buckets = []
 
@@ -425,7 +421,6 @@ def ai_kroki(request):
                 messages.error(request, "Wybierz datę, żeby dodać zadania.")
                 return redirect("ai_kroki")
 
-            # "2026-11-22" -> 22.11.2026, godz. 9:00, w strefie czasowej aplikacji
             try:
                 planned_date = timezone.make_aware(
                     datetime.combine(date.fromisoformat(data), time(9, 0))

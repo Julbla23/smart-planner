@@ -40,8 +40,7 @@
   {% if is_today %}<div class="current-time-line"></div>{% endif %}
   <ol>
     {% for task in tasks %}
-      <li data-task-id="{{ task.id }}"
-          class="priority-{{ task.priority }} d-flex justify-content-between align-items-center gap-2 py-1">
+      <li class="priority-{{ task.priority }} d-flex justify-content-between align-items-center gap-2 py-1">
 
         <div class="flex-grow-1">
           <span class="text-muted small me-1">
@@ -86,7 +85,6 @@
 </div>
 {% endif %}
 
-<!-- Okienko potwierdzenia usunięcia (jedno dla wszystkich zadań) -->
 <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">

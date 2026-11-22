@@ -5,15 +5,11 @@ from . import views
 
 
 urlpatterns = [
-    # logowanie i konto
     path("", auth_views.LoginView.as_view(template_name="registration/login.html", redirect_authenticated_user=True), name="login"),
     path("logout/", auth_views.LogoutView.as_view(), name="logout"),
     path("register/", views.register, name="register"),
-
-    # strona główna
     path("home/", views.home, name="home"),
 
-    # zadania
     path("tasks/", views.task_list, name="task_list"),
     path("tasks/add/", views.add_task, name="add_task"),
     path("tasks/backlog/", views.backlog_tasks_list, name="backlog_tasks_list"),
@@ -21,19 +17,15 @@ urlpatterns = [
     path("tasks/<int:n>/done/", views.status_done, name="status_done"),
     path("tasks/<int:n>/delete/", views.delete_task, name="delete_task"),
 
-    # kategorie
     path("categories/add/", views.add_category, name="add_category"),
 
-    # kalendarz
     path("calendar/", views.calendar, name="calendar"),
     path("calendar/<int:year>/<int:month>/", views.calendar, name="calendar_month"),
     path("calendar/<int:year>/<int:month>/<int:day>/", views.tasks_by_day, name="tasks_by_day"),
 
-    # statystyki
     path("tasks/statistics/weekly/", views.show_weekly_statistics, name="show_weekly_statistics"),
     path("tasks/statistics/monthly/", views.show_monthly_statistics, name="show_monthly_statistics"),
     path("tasks/statistics/quarterly/", views.show_quarterly_statistics, name="show_quarterly_statistics"),
 
-    # AI
     path("ai/", views.ai_kroki, name="ai_kroki"),
 ]

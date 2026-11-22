@@ -13,12 +13,10 @@ User = get_user_model()
 
 
 def at(day, hour=12, minute=0):
-    """Data i godzina w strefie czasowej aplikacji, np. at(date.today(), 9) -> dziś 9:00."""
     return timezone.make_aware(datetime.combine(day, time(hour, minute)))
 
 
 class PlannerTestCase(TestCase):
-    """Wspólne przygotowanie: dwóch użytkowników, Ala jest zalogowana."""
 
     def setUp(self):
         self.today = date.today()
@@ -39,7 +37,6 @@ class PlannerTestCase(TestCase):
         )
 
 
-# ===== Logowanie i rejestracja =====
 
 class AuthTests(TestCase):
 
@@ -68,7 +65,6 @@ class AuthTests(TestCase):
         self.assertFalse(User.objects.filter(username="nowa").exists())
 
 
-# ===== Izolacja danych: każdy widzi tylko swoje =====
 
 class DataIsolationTests(PlannerTestCase):
 
@@ -109,7 +105,6 @@ class DataIsolationTests(PlannerTestCase):
         self.assertNotContains(response, "Cudza kategoria")
 
 
-# ===== Dodawanie, edycja, usuwanie zadań =====
 
 class TaskActionTests(PlannerTestCase):
 
@@ -221,7 +216,6 @@ class TaskActionTests(PlannerTestCase):
         self.assertEqual(task.status, "todo")
 
 
-# ===== Kategorie =====
 
 class CategoryTests(PlannerTestCase):
 
@@ -241,7 +235,6 @@ class CategoryTests(PlannerTestCase):
         self.assertEqual(Category.objects.count(), 0)
 
 
-# ===== Procent wykonania dnia =====
 
 class CompletionTests(PlannerTestCase):
 
@@ -259,7 +252,6 @@ class CompletionTests(PlannerTestCase):
         self.assertEqual(response.context["percentage"], 33)
 
 
-# ===== Statystyki =====
 
 class StatisticsTests(PlannerTestCase):
 
@@ -294,7 +286,6 @@ class StatisticsTests(PlannerTestCase):
         self.assertNotIn(task, stats["overdue_tasks"])
 
     def test_done_is_counted_by_completion_date(self):
-        # zaplanowane dawno temu, ale zrobione dziś -> liczy się do tego tygodnia
         task = self.make_task(day=self.today - timedelta(days=60), status="done",
                               status_changed_at=timezone.now())
         start, end = self.week()
@@ -323,14 +314,12 @@ class ChartBucketsTests(TestCase):
 
         buckets = chart_buckets("month", start, end)
 
-        # 1.11.2026 to niedziela, więc pierwszy "tydzień" ma jeden dzień
         self.assertEqual(buckets[0][:2], (date(2026, 11, 1), date(2026, 11, 1)))
         self.assertEqual(buckets[-1][1], end)
         for (_, prev_end, _), (next_start, _, _) in zip(buckets, buckets[1:]):
             self.assertEqual(next_start, prev_end + timedelta(days=1))
 
 
-# ===== Kalendarz =====
 
 class CalendarTests(PlannerTestCase):
 
@@ -360,7 +349,6 @@ class CalendarTests(PlannerTestCase):
         self.assertEqual(response.context["prev_month"], 12)
 
 
-# ===== Strona główna =====
 
 class HomeTests(PlannerTestCase):
 
@@ -376,7 +364,6 @@ class HomeTests(PlannerTestCase):
         self.assertEqual(response.context["overdue_count"], 1)
 
 
-# ===== Rozbij cel (AI) =====
 
 class AiStepsTests(PlannerTestCase):
 
