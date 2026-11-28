@@ -112,6 +112,20 @@ planner/                  # the application
 - Actions that change data (mark as done, delete, add category) use POST requests protected by CSRF tokens.
 - Secret keys are kept in a `.env` file, which is excluded from the repository.
 
+## 🐳 Running with Docker
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/Julbla23/smart-planner.git
+   cd smart-planner
+   ```
+2. Create a `.env` file based on `.env.example` and enter your Groq API key.
+3. Start the application:
+   ```bash
+   docker compose up --build
+   ```
+4. Open http://localhost:8000 in your browser.
+
 ## Planned improvements
 
 - Online deployment
